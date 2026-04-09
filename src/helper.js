@@ -329,6 +329,7 @@ const addApiKey = async (serverless, options) => {
         // use region specified for KMS keys, otherwise take the region from command line
         const kmsKeyRegion = apiKeyValue.kmsKeyRegion || region;
         const kms = new KMSClient({
+          credentials: awsCredentials.credentials,
           region: kmsKeyRegion,
           maxAttempts: MAX_ATTEMPTS
         });

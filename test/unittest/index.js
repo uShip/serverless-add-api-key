@@ -1,7 +1,6 @@
 require('should');
 const sinon = require('sinon');
 
-
 const plugin = require('../../src/helper');
 
 const provider = {
@@ -241,8 +240,7 @@ describe('test getApiKey function', () => {
     before(() => {
       const error = new Error('forced error');
       error.name = 'NotFoundException';
-      agMock = { send: sinon.fake.rejects(error)
-       };
+      agMock = { send: sinon.fake.rejects(error) };
     });
     it ('should return null', done => {
       plugin.getApiKey('test-plugins-us-west-2-key', agMock, serverless.cli)
@@ -260,17 +258,13 @@ describe('test getApiKey function', () => {
   describe('no matching api key found', () => {
     let agMock;
     before(() => {
-      agMock = {
-
-        send: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           items: [
             {
               name: 'test-non-match-key'
             }
           ]
-        })
-
-      };
+        }) };
     });
     it ('should return null', done => {
       plugin.getApiKey('test-plugins-us-west-2-key', agMock, serverless.cli)
@@ -288,9 +282,7 @@ describe('test getApiKey function', () => {
   describe('matching api key found', () => {
     let agMock;
     before(() => {
-      agMock = {
-
-        send: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           items: [
             {
               name: 'test-non-match-key'
@@ -299,9 +291,7 @@ describe('test getApiKey function', () => {
               name: 'test-plugins-us-west-2-key'
             }
           ]
-        })
-
-      };
+        }) };
     });
     it ('should return null', done => {
       plugin.getApiKey('test-plugins-us-west-2-key', agMock, serverless.cli)
@@ -343,8 +333,7 @@ describe('test getUsagePlan function', () => {
     before(() => {
       const error = new Error('forced error');
       error.name = 'NotFoundException';
-      agMock = { send: sinon.fake.rejects(error)
-       };
+      agMock = { send: sinon.fake.rejects(error) };
     });
     it ('should return null', done => {
       plugin.getUsagePlan('test-plugins-us-west-2-plan', agMock, serverless.cli)
@@ -362,17 +351,13 @@ describe('test getUsagePlan function', () => {
   describe('no matching plan found', () => {
     let agMock;
     before(() => {
-      agMock = {
-
-        send: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           items: [
             {
               name: 'test-non-match-plan'
             }
           ]
-        })
-
-      };
+        }) };
     });
     it ('should return null', done => {
       plugin.getUsagePlan('test-plugins-us-west-2-plan', agMock, serverless.cli)
@@ -390,9 +375,7 @@ describe('test getUsagePlan function', () => {
   describe('matching plan found', () => {
     let agMock;
     before(() => {
-      agMock = {
-
-        send: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           items: [
             {
               name: 'test-non-match-plan'
@@ -401,9 +384,7 @@ describe('test getUsagePlan function', () => {
               name: 'test-plugins-us-west-2-plan'
             }
           ]
-        })
-
-      };
+        }) };
     });
     it ('should return null', done => {
       plugin.getUsagePlan('test-plugins-us-west-2-plan', agMock, serverless.cli)
@@ -443,13 +424,9 @@ describe('test getUsagePlanKeys function', () => {
   describe('no plan keys found', () => {
     let agMock;
     before(() => {
-      agMock = {
-
-        send: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           items: []
-        })
-
-      };
+        }) };
     });
     it ('should return null', done => {
       plugin.getUsagePlanKeys('test-plugins-us-west-2-plan', agMock, serverless.cli)
@@ -507,14 +484,10 @@ describe('test createKey function', () => {
   describe('success', () => {
     let agMock;
     before(() => {
-      agMock = {
-
-        send: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           id: 'test-key-id',
           value: 'some-random-value'
-        })
-
-      };
+        }) };
     });
     it ('should return id and value', done => {
       plugin.createKey('test-plugins-us-west-2-key', null, agMock, serverless.cli)
@@ -554,13 +527,9 @@ describe('test createUsagePlan function', () => {
   describe('success', () => {
     let agMock;
     before(() => {
-      agMock = {
-
-        send: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           id: 'test-plan-id'
-        })
-
-      };
+        }) };
     });
     it ('should return id and value', done => {
       plugin.createUsagePlan('test-plugins-us-west-2-plan', agMock, serverless.cli, undefined)
@@ -600,8 +569,7 @@ describe('test createUsagePlanKey function', () => {
   describe('success', () => {
     let agMock;
     before(() => {
-      agMock = { send: sinon.fake.resolves()
-       };
+      agMock = { send: sinon.fake.resolves() };
     });
     it ('should return nothing', done => {
       plugin.createUsagePlanKey('test-key-id', 'test-plan-id', agMock, serverless.cli)
@@ -657,9 +625,7 @@ describe('test associateRestApiWithUsagePlan function', () => {
       ]
     }
     before(() => {
-      cfnMock = {
-
-        send: sinon.fake.resolves({
+      cfnMock = { send: sinon.fake.resolves({
           Stacks: [
             {
               Outputs: [
@@ -670,9 +636,7 @@ describe('test associateRestApiWithUsagePlan function', () => {
               ]
             }
           ]
-        })
-
-      };
+        }) };
       agMock = { send: sinon.fake.rejects(new Error('failed'))
        };
     });
@@ -702,9 +666,7 @@ describe('test associateRestApiWithUsagePlan function', () => {
       ]
     }
     before(() => {
-      cfnMock = {
-
-        send: sinon.fake.resolves({
+      cfnMock = { send: sinon.fake.resolves({
           Stacks: [
             {
               Outputs: [
@@ -715,9 +677,7 @@ describe('test associateRestApiWithUsagePlan function', () => {
               ]
             }
           ]
-        })
-
-      };
+        }) };
       agMock = { send: sinon.fake.rejects(new Error('ag failed'))
        };
     });
@@ -747,9 +707,7 @@ describe('test associateRestApiWithUsagePlan function', () => {
       ]
     }
     before(() => {
-      cfnMock = {
-
-        send: sinon.fake.resolves({
+      cfnMock = { send: sinon.fake.resolves({
           Stacks: [
             {
               Outputs: [
@@ -760,11 +718,8 @@ describe('test associateRestApiWithUsagePlan function', () => {
               ]
             }
           ]
-        })
-
-      };
-      agMock = { send: sinon.fake.resolves()
-       };
+        }) };
+      agMock = { send: sinon.fake.resolves() };
     });
     it ('should return', done => {
       plugin.associateRestApiWithUsagePlan('test-stack', usagePlan, 'dev', cfnMock, agMock, serverless.cli)
@@ -1077,8 +1032,7 @@ describe('test deleteUsagePlan function', () => {
   describe('success', () => {
     let agMock;
     before(() => {
-      agMock = { send: sinon.fake.resolves()
-       };
+      agMock = { send: sinon.fake.resolves() };
     });
     it ('should return id and value', done => {
       plugin.deleteUsagePlan('test-plugins-us-west-2-key', agMock, serverless.cli)
@@ -1116,8 +1070,7 @@ describe('test deleteApiKey function', () => {
   describe('success', () => {
     let agMock;
     before(() => {
-      agMock = { send: sinon.fake.resolves()
-       };
+      agMock = { send: sinon.fake.resolves() };
     });
     it ('should return id and value', done => {
       plugin.deleteApiKey('test-plugins-us-west-2-key', agMock, serverless.cli)
