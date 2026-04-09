@@ -1,4 +1,17 @@
-const AWS = require('aws-sdk');
+const {
+  APIGatewayClient,
+  GetApiKeysCommand,
+  GetUsagePlansCommand,
+  GetUsagePlanKeysCommand,
+  CreateApiKeyCommand,
+  CreateUsagePlanCommand,
+  CreateUsagePlanKeyCommand,
+  UpdateUsagePlanCommand,
+  DeleteUsagePlanCommand,
+  DeleteApiKeyCommand
+} = require('@aws-sdk/client-api-gateway');
+const { CloudFormationClient, DescribeStacksCommand } = require('@aws-sdk/client-cloudformation');
+const { KMSClient, DecryptCommand } = require('@aws-sdk/client-kms');
 const chalk = require('chalk');
 
 let TRUE = true;
@@ -6,7 +19,7 @@ let TRUE = true;
 /**
  * Get api key by name.
  * @param {string} key Api Key name.
- * @param {Object} apigateway AWS apigateway object
+ * @param {Object} apigateway AWS APIGatewayClient
  * @param {Object} cli Serverless CLI object
  * @returns {Object} Api key info.
  */
@@ -15,12 +28,8 @@ const getApiKey = async (key, apigateway, cli) => {
   let keys = [];
   try {
     while (TRUE) {
-      let resp = null;
-      if (!position) {
-        resp = await apigateway.getApiKeys().promise();
-      } else {
-        resp = await apigateway.getApiKeys({ position }).promise();
-      }
+      const params = position ? { position } : {};
+      const resp = await apigateway.send(new GetApiKeysCommand(params));
       keys = keys.concat(resp.items);
       if (resp.position) {
         position = resp.position;
@@ -30,7 +39,7 @@ const getApiKey = async (key, apigateway, cli) => {
     }
     return keys.find(k => k.name === key);
   } catch (error) {
-    if (error.code === 'NotFoundException') {
+    if (error.name === 'NotFoundException') {
       return undefined;
     }
     cli.consoleLog(`AddApiKey: ${chalk.red(`Failed to check if key already exists. Error ${error.message || error}`)}`);
@@ -41,7 +50,7 @@ const getApiKey = async (key, apigateway, cli) => {
 /**
  * Get usage plan info by name.
  * @param {string} planName Usage plan name.
- * @param {Object} apigateway AWS apigateway object
+ * @param {Object} apigateway AWS APIGatewayClient
  * @param {Object} cli Serverless CLI object
  * @returns {Object} Usage plan info.
  */
@@ -50,12 +59,8 @@ const getUsagePlan = async (planName, apigateway, cli) => {
   let plans = [];
   try {
     while (TRUE) {
-      let resp = null;
-      if (!position) {
-        resp = await apigateway.getUsagePlans().promise();
-      } else {
-        resp = await apigateway.getUsagePlans({ position }).promise();
-      }
+      const params = position ? { position } : {};
+      const resp = await apigateway.send(new GetUsagePlansCommand(params));
       plans = plans.concat(resp.items);
       if (resp.position) {
         position = resp.position;
@@ -65,7 +70,7 @@ const getUsagePlan = async (planName, apigateway, cli) => {
     }
     return plans.find(p => p.name === planName);
   } catch (error) {
-    if (error.code === 'NotFoundException') {
+    if (error.name === 'NotFoundException') {
       return undefined;
     }
     cli.consoleLog(`AddApiKey: ${chalk.red(`Failed to check if usage plan already exists. Error ${error.message || error}`)}`);
@@ -76,7 +81,7 @@ const getUsagePlan = async (planName, apigateway, cli) => {
 /**
  * Get the list of API keys associated with usage plan.
  * @param {string} usagePlanId usage plan Id
- * @param {Object} apigateway AWS apigateway object
+ * @param {Object} apigateway AWS APIGatewayClient
  * @param {Object} cli Serverless CLI object
  * @returns {Array} List of Api keys associated with the usage plan.
  */
@@ -85,12 +90,8 @@ const getUsagePlanKeys = async (usagePlanId, apigateway, cli) => {
   let planKeys = [];
   try {
     while (TRUE) {
-      let resp = null;
-      if (!position) {
-        resp = await apigateway.getUsagePlanKeys({ usagePlanId }).promise();
-      } else {
-        resp = await apigateway.getUsagePlanKeys({ usagePlanId, position }).promise();
-      }
+      const params = position ? { usagePlanId, position } : { usagePlanId };
+      const resp = await apigateway.send(new GetUsagePlanKeysCommand(params));
       planKeys = planKeys.concat(resp.items);
       if (resp.position) {
         position = resp.position;
@@ -109,7 +110,7 @@ const getUsagePlanKeys = async (usagePlanId, apigateway, cli) => {
  * Create new api key.
  * @param {string} key Api key name.
  * @param {string} keyValue Api key value.
- * @param {Object} apigateway AWS apigateway object
+ * @param {Object} apigateway AWS APIGatewayClient
  * @param {Object} cli Serverless CLI object
  * @returns {string} Api key id.
  */
@@ -119,7 +120,7 @@ const createKey = async (key, keyValue, apigateway, cli) => {
     const params = { name: key, enabled: true };
     if (keyValue) params.value = keyValue;
 
-    const resp = await apigateway.createApiKey(params).promise();
+    const resp = await apigateway.send(new CreateApiKeyCommand(params));
     cli.consoleLog(`AddApiKey: ${chalk.yellow(`Created new api key ${key}:${resp.id}`)}`);
     return { id: resp.id, value: resp.value };
   } catch (error) {
@@ -131,7 +132,7 @@ const createKey = async (key, keyValue, apigateway, cli) => {
 /**
  * Create new usage plan.
  * @param {string} name Usage plan name
- * @param {Object} apigateway AWS apigateway object
+ * @param {Object} apigateway AWS APIGatewayClient
  * @param {Object} cli Serverless CLI object
  * @param {Object} usagePlanTemplate The parameters for the usagePlan to create.
  * @returns {string} Usage plan id.
@@ -143,7 +144,7 @@ const createUsagePlan = async (name, apigateway, cli, usagePlanTemplate) => {
     if (usagePlanTemplate) {
       plan = Object.assign({}, usagePlanTemplate, { name });
     }
-    const resp = await apigateway.createUsagePlan(plan).promise();
+    const resp = await apigateway.send(new CreateUsagePlanCommand(plan));
     return resp.id;
   } catch (error) {
     cli.consoleLog(`AddApiKey: ${chalk.red(`Failed to create new usage plan ${name}. Error ${error.message || error}`)}`);
@@ -155,7 +156,7 @@ const createUsagePlan = async (name, apigateway, cli, usagePlanTemplate) => {
  * Associate api key with usage plan.
  * @param {string} apiKeyId Api key id.
  * @param {string} usagePlanId Usage plan id.
- * @param {Object} apigateway AWS apigateway object
+ * @param {Object} apigateway AWS APIGatewayClient
  * @param {Object} cli Serverless CLI object
  */
 const createUsagePlanKey = async (apiKeyId, usagePlanId, apigateway, cli) => {
@@ -166,7 +167,7 @@ const createUsagePlanKey = async (apiKeyId, usagePlanId, apigateway, cli) => {
       keyType: 'API_KEY',
       usagePlanId
     };
-    await apigateway.createUsagePlanKey(params).promise();
+    await apigateway.send(new CreateUsagePlanKeyCommand(params));
   } catch (error) {
     cli.consoleLog(`AddApiKey: ${chalk.red(`Failed to create usage plan key. Error ${error.message || error}`)}`);
     throw error;
@@ -175,16 +176,16 @@ const createUsagePlanKey = async (apiKeyId, usagePlanId, apigateway, cli) => {
 
 /**
  * Add Api gateway to usage plan.
- * @param {string} serviceName Serverless service name
+ * @param {string} stackName CloudFormation stack name
  * @param {Object} usagePlan Usage plan info
  * @param {string} stage api gateway stage
- * @param {Object} cfn AWS cloudformation object
- * @param {Object} ag AWS apigateway object
+ * @param {Object} cfn AWS CloudFormationClient
+ * @param {Object} ag AWS APIGatewayClient
  * @param {Object} cli Serverless CLI object
  */
 const associateRestApiWithUsagePlan = async (stackName, usagePlan, stage, cfn, ag, cli) => {
   try {
-    const stack = await cfn.describeStacks({ StackName: `${stackName}` }).promise();
+    const stack = await cfn.send(new DescribeStacksCommand({ StackName: `${stackName}` }));
     const { Outputs } = stack.Stacks[0];
     let apiName = null;
     Outputs.forEach(o => {
@@ -207,7 +208,7 @@ const associateRestApiWithUsagePlan = async (stackName, usagePlan, stage, cfn, a
         }
       ]
     };
-    await ag.updateUsagePlan(params).promise();
+    await ag.send(new UpdateUsagePlanCommand(params));
     cli.consoleLog(`AddApiKey: ${chalk.yellow(`Completed associating rest Api ${apiName} with the usage plan`)}`);
   } catch (error) {
     cli.consoleLog(`AddApiKey: ${chalk.red(`Failed to associate api key with usage plan. Error ${error.message || error}`)}`);
@@ -219,15 +220,15 @@ const associateRestApiWithUsagePlan = async (stackName, usagePlan, stage, cfn, a
  *
  * @param {string} encryptedApiKeyValue Encrypted value for the API key
  * @param {string} kmsKeyRegion AWS region where KMS key is in.
- * @param {Object} kms AWS KMS object
+ * @param {Object} kms AWS KMSClient
  * @param {Object} cli Serverless CLI object
  */
 const decryptApiKeyValue = async (encryptedApiKeyValue, kmsKeyRegion, kms, cli) => {
   try {
-    const decryptedApiKeyValue = await kms
-      .decrypt({ CiphertextBlob: new Buffer(encryptedApiKeyValue, 'base64') }) //eslint-disable-line no-undef
-      .promise()
-      .then(data => data.Plaintext.toString('ascii'));
+    const resp = await kms.send(new DecryptCommand({
+      CiphertextBlob: Buffer.from(encryptedApiKeyValue, 'base64')
+    }));
+    const decryptedApiKeyValue = Buffer.from(resp.Plaintext).toString('ascii');
 
     cli.consoleLog(`AddApiKey: ${chalk.yellow(`Successfully decrypted value of "${encryptedApiKeyValue.substring(0, 10)}..." using KMS key in ${kmsKeyRegion}`)}`);
     return decryptedApiKeyValue;
@@ -240,11 +241,11 @@ const decryptApiKeyValue = async (encryptedApiKeyValue, kmsKeyRegion, kms, cli) 
 /**
  *
  * @param {string} id usage plan id
- * @param {Object} ag Api Gateway object
+ * @param {Object} ag APIGatewayClient
  */
 const deleteUsagePlan = async function deleteUsagePlan(id, ag, cli) {
   try {
-    await ag.deleteUsagePlan({ usagePlanId:id }).promise();
+    await ag.send(new DeleteUsagePlanCommand({ usagePlanId: id }));
   } catch (error) {
     cli.consoleLog(`RemoveApiKey: ${chalk.red(`Failed to delete usage plan ${id}}`)}.`);
     throw error;
@@ -254,11 +255,11 @@ const deleteUsagePlan = async function deleteUsagePlan(id, ag, cli) {
 /**
  *
  * @param {string} id Api key id
- * @param {Object} ag Api Gateway object
+ * @param {Object} ag APIGatewayClient
  */
 const deleteApiKey = async function deleteApiKey(id, ag, cli) {
   try {
-    await ag.deleteApiKey({ apiKey: id }).promise();
+    await ag.send(new DeleteApiKeyCommand({ apiKey: id }));
   } catch (error) {
     cli.consoleLog(`RemoveApiKey: ${chalk.red(`Failed to delete api key ${id}}`)}.`);
     throw error;
@@ -270,6 +271,8 @@ const resolveDefaultUsagePlan = provider => {
   if (provider.apiGateway && provider.apiGateway.usagePlan) return provider.apiGateway.usagePlan;
   return provider.usagePlan || {};
 }
+
+const MAX_ATTEMPTS = 5;
 
 /**
  * Main function that adds api key.
@@ -286,16 +289,16 @@ const addApiKey = async (serverless, options) => {
   const serviceName = serverless.service.getServiceName();
   const stackName = serverless.service.provider.stackName || `${serviceName}-${stage}`;
   const results = [];
-  const ag = new AWS.APIGateway({
+  const ag = new APIGatewayClient({
     credentials: awsCredentials.credentials,
     region,
-    httpOptions: provider.sdk.config.httpOptions
+    maxAttempts: MAX_ATTEMPTS
   });
 
-  const cfn = new AWS.CloudFormation({
+  const cfn = new CloudFormationClient({
     credentials: awsCredentials.credentials,
     region,
-    httpOptions: provider.sdk.config.httpOptions
+    maxAttempts: MAX_ATTEMPTS
   });
 
   if (!apiKeys || !apiKeys.length) {
@@ -325,8 +328,11 @@ const addApiKey = async (serverless, options) => {
       if (typeof apiKeyValue === 'object' && apiKeyValue.encrypted) {
         // use region specified for KMS keys, otherwise take the region from command line
         const kmsKeyRegion = apiKeyValue.kmsKeyRegion || region;
-        const kms = new AWS.KMS({ apiVersion: '2014-11-01', region: kmsKeyRegion });
-        apiKeyValue = await module.exports.decryptApiKeyValue(apiKeyValue.encrypted, kmsKeyRegion, kms,serverless.cli);
+        const kms = new KMSClient({
+          region: kmsKeyRegion,
+          maxAttempts: MAX_ATTEMPTS
+        });
+        apiKeyValue = await module.exports.decryptApiKeyValue(apiKeyValue.encrypted, kmsKeyRegion, kms, serverless.cli);
       }
     }
 
@@ -392,10 +398,10 @@ const removeApiKey = async (serverless) => {
   const stage = provider.getStage();
   const apiKeysForStages = serverless.service.custom.apiKeys || [];
   const apiKeys = Array.isArray(apiKeysForStages) ? apiKeysForStages : apiKeysForStages[stage];
-  const ag = new AWS.APIGateway({
+  const ag = new APIGatewayClient({
     credentials: awsCredentials.credentials,
     region,
-    httpOptions: provider.sdk.config.httpOptions
+    maxAttempts: MAX_ATTEMPTS
   });
 
   let planName;

@@ -1,7 +1,10 @@
 {
-  "name": "serverless-add-api-key",
-  "version": "4.2.1",
+  "name": "@uship/serverless-add-api-key",
+  "version": "5.0.0",
   "description": "serverless plugin to create a api key and usage pattern (if they don't already exist) and associates them to the Rest Api",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "main": "src/index.js",
   "scripts": {
     "test-unit": "mocha test/unittest",
@@ -12,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rrahul963/serverless-add-api-key.git"
+    "url": "git+https://github.com/uShip/serverless-add-api-key.git"
   },
   "keywords": [
     "api",
@@ -25,11 +28,13 @@
   "author": "rahul.tulsian87@gmail.com",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/rrahul963/serverless-add-api-key/issues"
+    "url": "https://github.com/uShip/serverless-add-api-key/issues"
   },
-  "homepage": "https://github.com/rrahul963/serverless-add-api-key#readme",
+  "homepage": "https://github.com/uShip/serverless-add-api-key#readme",
   "dependencies": {
-    "aws-sdk": "^2.421.0",
+    "@aws-sdk/client-api-gateway": "^3.750.0",
+    "@aws-sdk/client-cloudformation": "^3.750.0",
+    "@aws-sdk/client-kms": "^3.750.0",
     "chalk": "^2.4.1"
   },
   "devDependencies": {
