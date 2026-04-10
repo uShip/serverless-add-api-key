@@ -1,6 +1,5 @@
 require('should');
 const sinon = require('sinon');
-const AWS = require('aws-sdk');
 
 const plugin = require('../../src/helper');
 
@@ -240,14 +239,8 @@ describe('test getApiKey function', () => {
     let agMock;
     before(() => {
       const error = new Error('forced error');
-      error.code = 'NotFoundException';
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.rejects(error)
-      };
-      agMock = {
-        getApiKeys: () => { return agMockPromise }
-      };
+      error.name = 'NotFoundException';
+      agMock = { send: sinon.fake.rejects(error) };
     });
     it ('should return null', done => {
       plugin.getApiKey('test-plugins-us-west-2-key', agMock, serverless.cli)
@@ -265,19 +258,13 @@ describe('test getApiKey function', () => {
   describe('no matching api key found', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           items: [
             {
               name: 'test-non-match-key'
             }
           ]
-        })
-      };
-      agMock = {
-        getApiKeys: () => { return agMockPromise }
-      };
+        }) };
     });
     it ('should return null', done => {
       plugin.getApiKey('test-plugins-us-west-2-key', agMock, serverless.cli)
@@ -295,9 +282,7 @@ describe('test getApiKey function', () => {
   describe('matching api key found', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           items: [
             {
               name: 'test-non-match-key'
@@ -306,11 +291,7 @@ describe('test getApiKey function', () => {
               name: 'test-plugins-us-west-2-key'
             }
           ]
-        })
-      };
-      agMock = {
-        getApiKeys: () => { return agMockPromise }
-      };
+        }) };
     });
     it ('should return null', done => {
       plugin.getApiKey('test-plugins-us-west-2-key', agMock, serverless.cli)
@@ -328,13 +309,8 @@ describe('test getApiKey function', () => {
   describe('failure', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.rejects(new Error('failed'))
-      };
-      agMock = {
-        getApiKeys: () => { return agMockPromise }
-      };
+      agMock = { send: sinon.fake.rejects(new Error('failed'))
+       };
     });
     it ('should throw error', done => {
       plugin.getApiKey('test-plugins-us-west-2-key', agMock, serverless.cli)
@@ -356,14 +332,8 @@ describe('test getUsagePlan function', () => {
     let agMock;
     before(() => {
       const error = new Error('forced error');
-      error.code = 'NotFoundException';
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.rejects(error)
-      };
-      agMock = {
-        getUsagePlans: () => { return agMockPromise }
-      };
+      error.name = 'NotFoundException';
+      agMock = { send: sinon.fake.rejects(error) };
     });
     it ('should return null', done => {
       plugin.getUsagePlan('test-plugins-us-west-2-plan', agMock, serverless.cli)
@@ -381,19 +351,13 @@ describe('test getUsagePlan function', () => {
   describe('no matching plan found', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           items: [
             {
               name: 'test-non-match-plan'
             }
           ]
-        })
-      };
-      agMock = {
-        getUsagePlans: () => { return agMockPromise }
-      };
+        }) };
     });
     it ('should return null', done => {
       plugin.getUsagePlan('test-plugins-us-west-2-plan', agMock, serverless.cli)
@@ -411,9 +375,7 @@ describe('test getUsagePlan function', () => {
   describe('matching plan found', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           items: [
             {
               name: 'test-non-match-plan'
@@ -422,11 +384,7 @@ describe('test getUsagePlan function', () => {
               name: 'test-plugins-us-west-2-plan'
             }
           ]
-        })
-      };
-      agMock = {
-        getUsagePlans: () => { return agMockPromise }
-      };
+        }) };
     });
     it ('should return null', done => {
       plugin.getUsagePlan('test-plugins-us-west-2-plan', agMock, serverless.cli)
@@ -444,13 +402,8 @@ describe('test getUsagePlan function', () => {
   describe('failure', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.rejects(new Error('failed'))
-      };
-      agMock = {
-        getUsagePlans: () => { return agMockPromise }
-      };
+      agMock = { send: sinon.fake.rejects(new Error('failed'))
+       };
     });
     it ('should return null', done => {
       plugin.getUsagePlan('test-plugins-us-west-2-plan', agMock, serverless.cli)
@@ -471,15 +424,9 @@ describe('test getUsagePlanKeys function', () => {
   describe('no plan keys found', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           items: []
-        })
-      };
-      agMock = {
-        getUsagePlanKeys: () => { return agMockPromise }
-      };
+        }) };
     });
     it ('should return null', done => {
       plugin.getUsagePlanKeys('test-plugins-us-west-2-plan', agMock, serverless.cli)
@@ -497,13 +444,8 @@ describe('test getUsagePlanKeys function', () => {
   describe('failure', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.rejects(new Error('failed'))
-      };
-      agMock = {
-        getUsagePlanKeys: () => { return agMockPromise }
-      };
+      agMock = { send: sinon.fake.rejects(new Error('failed'))
+       };
     });
     it ('should return null', done => {
       plugin.getUsagePlanKeys('test-plugins-us-west-2-plan', agMock, serverless.cli)
@@ -523,13 +465,8 @@ describe('test createKey function', () => {
   describe('failure', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.rejects(new Error('failed'))
-      };
-      agMock = {
-        createApiKey: () => { return agMockPromise }
-      };
+      agMock = { send: sinon.fake.rejects(new Error('failed'))
+       };
     });
     it ('should throw error', done => {
       plugin.createKey('test-plugins-us-west-2-key', null, agMock, serverless.cli)
@@ -547,16 +484,10 @@ describe('test createKey function', () => {
   describe('success', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           id: 'test-key-id',
           value: 'some-random-value'
-        })
-      };
-      agMock = {
-        createApiKey: () => { return agMockPromise }
-      };
+        }) };
     });
     it ('should return id and value', done => {
       plugin.createKey('test-plugins-us-west-2-key', null, agMock, serverless.cli)
@@ -577,13 +508,8 @@ describe('test createUsagePlan function', () => {
   describe('failure', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.rejects(new Error('failed'))
-      };
-      agMock = {
-        createUsagePlan: () => { return agMockPromise }
-      };
+      agMock = { send: sinon.fake.rejects(new Error('failed'))
+       };
     });
     it ('should throw error', done => {
       plugin.createUsagePlan('test-plugins-us-west-2-plan', agMock, serverless.cli, undefined)
@@ -601,15 +527,9 @@ describe('test createUsagePlan function', () => {
   describe('success', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.resolves({
+      agMock = { send: sinon.fake.resolves({
           id: 'test-plan-id'
-        })
-      };
-      agMock = {
-        createUsagePlan: () => { return agMockPromise }
-      };
+        }) };
     });
     it ('should return id and value', done => {
       plugin.createUsagePlan('test-plugins-us-west-2-plan', agMock, serverless.cli, undefined)
@@ -630,13 +550,8 @@ describe('test createUsagePlanKey function', () => {
   describe('failure', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.rejects(new Error('failed'))
-      };
-      agMock = {
-        createUsagePlanKey: () => { return agMockPromise }
-      };
+      agMock = { send: sinon.fake.rejects(new Error('failed'))
+       };
     });
     it ('should throw error', done => {
       plugin.createUsagePlanKey('test-key-id', 'test-plan-id', agMock, serverless.cli)
@@ -654,13 +569,7 @@ describe('test createUsagePlanKey function', () => {
   describe('success', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.resolves()
-      };
-      agMock = {
-        createUsagePlanKey: () => { return agMockPromise }
-      };
+      agMock = { send: sinon.fake.resolves() };
     });
     it ('should return nothing', done => {
       plugin.createUsagePlanKey('test-key-id', 'test-plan-id', agMock, serverless.cli)
@@ -681,20 +590,10 @@ describe('test associateRestApiWithUsagePlan function', () => {
     let agMock;
     let cfnMock;
     before(() => {
-      cfnMock = new AWS.CloudFormation();
-      const cfnMockPromise = {
-        promise: sinon.fake.rejects(new Error('cfn failed'))
-      };
-      cfnMock = {
-        describeStacks: () => { return cfnMockPromise }
-      };
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.rejects(new Error('failed'))
-      };
-      agMock = {
-        createUsagePlanKey: () => { return agMockPromise }
-      };
+      cfnMock = { send: sinon.fake.rejects(new Error('cfn failed'))
+       };
+      agMock = { send: sinon.fake.rejects(new Error('failed'))
+       };
     });
     it ('should throw error', done => {
       plugin.associateRestApiWithUsagePlan('test-stack', 'test-plan-id', 'dev', cfnMock, agMock, serverless.cli)
@@ -726,9 +625,7 @@ describe('test associateRestApiWithUsagePlan function', () => {
       ]
     }
     before(() => {
-      cfnMock = new AWS.CloudFormation();
-      const cfnMockPromise = {
-        promise: sinon.fake.resolves({
+      cfnMock = { send: sinon.fake.resolves({
           Stacks: [
             {
               Outputs: [
@@ -739,18 +636,9 @@ describe('test associateRestApiWithUsagePlan function', () => {
               ]
             }
           ]
-        })
-      };
-      cfnMock = {
-        describeStacks: () => { return cfnMockPromise }
-      };
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.rejects(new Error('failed'))
-      };
-      agMock = {
-        createUsagePlanKey: () => { return agMockPromise }
-      };
+        }) };
+      agMock = { send: sinon.fake.rejects(new Error('failed'))
+       };
     });
     it ('should return', done => {
       plugin.associateRestApiWithUsagePlan('test-stack', usagePlan, 'dev', cfnMock, agMock, serverless.cli)
@@ -778,9 +666,7 @@ describe('test associateRestApiWithUsagePlan function', () => {
       ]
     }
     before(() => {
-      cfnMock = new AWS.CloudFormation();
-      const cfnMockPromise = {
-        promise: sinon.fake.resolves({
+      cfnMock = { send: sinon.fake.resolves({
           Stacks: [
             {
               Outputs: [
@@ -791,18 +677,9 @@ describe('test associateRestApiWithUsagePlan function', () => {
               ]
             }
           ]
-        })
-      };
-      cfnMock = {
-        describeStacks: () => { return cfnMockPromise }
-      };
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.rejects(new Error('ag failed'))
-      };
-      agMock = {
-        updateUsagePlan: () => { return agMockPromise }
-      };
+        }) };
+      agMock = { send: sinon.fake.rejects(new Error('ag failed'))
+       };
     });
     it ('should return', done => {
       plugin.associateRestApiWithUsagePlan('test-stack', usagePlan, 'dev', cfnMock, agMock, serverless.cli)
@@ -830,9 +707,7 @@ describe('test associateRestApiWithUsagePlan function', () => {
       ]
     }
     before(() => {
-      cfnMock = new AWS.CloudFormation();
-      const cfnMockPromise = {
-        promise: sinon.fake.resolves({
+      cfnMock = { send: sinon.fake.resolves({
           Stacks: [
             {
               Outputs: [
@@ -843,18 +718,8 @@ describe('test associateRestApiWithUsagePlan function', () => {
               ]
             }
           ]
-        })
-      };
-      cfnMock = {
-        describeStacks: () => { return cfnMockPromise }
-      };
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.resolves()
-      };
-      agMock = {
-        updateUsagePlan: () => { return agMockPromise }
-      };
+        }) };
+      agMock = { send: sinon.fake.resolves() };
     });
     it ('should return', done => {
       plugin.associateRestApiWithUsagePlan('test-stack', usagePlan, 'dev', cfnMock, agMock, serverless.cli)
@@ -874,13 +739,7 @@ describe('test decryptApiKeyValue function', () => {
   describe('failure', () => {
     let kmsMock;
     before(() => {
-      kmsMock = new AWS.KMS();
-      const kmsMockPromise = {
-        promise: sinon.fake.rejects(new Error('failed'))
-      };
-      kmsMock = {
-        decrypt: () => { return kmsMockPromise }
-      }
+      kmsMock = { send: sinon.fake.rejects(new Error('failed')) };
     });
     it ('should throw error', done => {
       plugin.decryptApiKeyValue('test-value', 'us-west-2', kmsMock, serverless.cli)
@@ -898,17 +757,9 @@ describe('test decryptApiKeyValue function', () => {
   describe('success', () => {
     let kmsMock;
     before(() => {
-      kmsMock = new AWS.KMS();
-      const kmsMockPromise = {
-        promise: sinon.fake.resolves({
-          Plaintext: 'decrypted-value'
-        })
-      };
-      kmsMock = {
-        decrypt: () => { return kmsMockPromise }
-      }
+      kmsMock = { send: sinon.fake.resolves({ Plaintext: Buffer.from('decrypted-value') }) };
     });
-    it ('should throw error', done => {
+    it ('should return decrypted value', done => {
       plugin.decryptApiKeyValue('test-value', 'us-west-2', kmsMock, serverless.cli)
       .then(resp => {
         resp.should.eql('decrypted-value');
@@ -1162,13 +1013,8 @@ describe('test deleteUsagePlan function', () => {
   describe('failure', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.rejects(new Error('failed'))
-      };
-      agMock = {
-        deleteUsagePlan: () => { return agMockPromise }
-      };
+      agMock = { send: sinon.fake.rejects(new Error('failed'))
+       };
     });
     it ('should throw error', done => {
       plugin.deleteUsagePlan('test-plugins-us-west-2-key', agMock, serverless.cli)
@@ -1186,13 +1032,7 @@ describe('test deleteUsagePlan function', () => {
   describe('success', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.resolves()
-      };
-      agMock = {
-        deleteUsagePlan: () => { return agMockPromise }
-      };
+      agMock = { send: sinon.fake.resolves() };
     });
     it ('should return id and value', done => {
       plugin.deleteUsagePlan('test-plugins-us-west-2-key', agMock, serverless.cli)
@@ -1211,13 +1051,8 @@ describe('test deleteApiKey function', () => {
   describe('failure', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.rejects(new Error('failed'))
-      };
-      agMock = {
-        deleteApiKey: () => { return agMockPromise }
-      };
+      agMock = { send: sinon.fake.rejects(new Error('failed'))
+       };
     });
     it ('should throw error', done => {
       plugin.deleteApiKey('test-plugins-us-west-2-key', agMock, serverless.cli)
@@ -1235,13 +1070,7 @@ describe('test deleteApiKey function', () => {
   describe('success', () => {
     let agMock;
     before(() => {
-      agMock = new AWS.APIGateway();
-      const agMockPromise = {
-        promise: sinon.fake.resolves()
-      };
-      agMock = {
-        deleteApiKey: () => { return agMockPromise }
-      };
+      agMock = { send: sinon.fake.resolves() };
     });
     it ('should return id and value', done => {
       plugin.deleteApiKey('test-plugins-us-west-2-key', agMock, serverless.cli)
